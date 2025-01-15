@@ -1,0 +1,13 @@
+server:
+  host: "localhost"
+  port: 8080
+  timeout: 30
+
+mysql:
+  user: "root"
+  password: ""
+  dbname: "AhaPay"
+  host: "127.0.0.1"
+  port: 3306
+  sslmode: "disable"
+

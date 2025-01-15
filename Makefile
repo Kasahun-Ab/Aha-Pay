@@ -1,5 +1,3 @@
-# Makefile for Go API project
-
 # Go binary name
 BIN_NAME=go_ecommerce
 
@@ -33,4 +31,6 @@ clean:
 # Generate a Docker image (optional)
 # docker:
 # 	docker build -t $(BIN_NAME) .
-git branch -M main
+
+# Git branch management
+# git branch -M main

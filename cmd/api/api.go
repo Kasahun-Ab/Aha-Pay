@@ -1,54 +1,34 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go_ecommerce/internal/config"
+	"go_ecommerce/internal/models"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-
-	// "time"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
 )
 
-func helloHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, Echo with Logger and Recover!")
-}
-
-func postHandler(c echo.Context) error {
-	name := c.FormValue("name")
-	return c.String(http.StatusOK, "Hello, "+name)
-}
-
-func greetHandler(c echo.Context) error {
-	name := c.Param("name")
-	return c.String(http.StatusOK, "Hello, "+name)
-}
-
-func setupRoutes(e *echo.Echo) {
-	e.GET("/", helloHandler)
-	e.GET("/greet/:name", greetHandler)
-	e.POST("/post", postHandler)
-}
-
 func initDB(cfg *config.Config) (*gorm.DB, error) {
 	dbConn, err := config.ConnectDB(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error connecting to the database: %v", err)
+		return nil, fmt.Errorf("Error connecting to the database: %w", err)
 	}
 
 	sqlDB, err := dbConn.DB()
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving SQL DB: %v", err)
+		return nil, fmt.Errorf("Error retrieving SQL DB: %w", err)
 	}
 
 	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("Error pinging the database: %v", err)
+		return nil, fmt.Errorf("Error pinging the database: %w", err)
 	}
 
 	fmt.Println("Successfully connected to the MySQL database!")
@@ -56,54 +36,69 @@ func initDB(cfg *config.Config) (*gorm.DB, error) {
 }
 
 func main() {
-
 	cfg, err := config.LoadConfig("config.yaml")
-
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
 	dbConn, err := initDB(cfg)
-
 	if err != nil {
 		log.Fatalf("Database initialization failed: %v", err)
 	}
 	defer func() {
-		sqlDB, err := dbConn.DB()
-		if err != nil {
+		if sqlDB, err := dbConn.DB(); err != nil {
 			log.Printf("Error retrieving SQL DB: %v", err)
+		} else {
+			sqlDB.Close()
 		}
-		sqlDB.Close()
 	}()
 
 	e := echo.New()
 
 	// Middleware for logging and recovering from panics
 	e.Use(middleware.Logger())
-
 	e.Use(middleware.Recover())
 
-	// Set up all routes
-	setupRoutes(e)
+	err = dbConn.AutoMigrate(
+		&models.User{},
+		// &models.AuditLog{},
+		// &models.CardDetail{},
+		// &models.Log{},
+		// &models.Notification{},
+		// &models.PaymentMethod{},
+		// &models.RecurringTransaction{},
+		// &models.RewardPoint{},
+		// &models.SecurityLog{},
+		// &models.Transaction{},
+		// &models.Transfer{},
+		// &models.UserSession{},
+		// &models.UserVerification{},
+		&models.Wallet{},
+	)
 
-	
+	if err != nil {
+		log.Fatal("Error auto-migrating: ", err)
+	}
+
+	fmt.Println("Auto migration completed")
+	// Start the server in a goroutine
 	go func() {
 		if err := e.Start(":8080"); err != nil {
-			log.Fatalf("Error starting server: %v", err)
+			log.Printf("Error starting server: %v", err)
 		}
 	}()
 
-
+	// Wait for interrupt signal to gracefully shutdown the server
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 
-	// Initiating server shutdown
+	// Gracefully shutting down
 	fmt.Println("Shutting down gracefully...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	if err := e.Shutdown(nil);
-	      err != nil {
-
+	if err := e.Shutdown(ctx); err != nil {
 		log.Fatalf("Server Shutdown failed: %v", err)
 	}
 

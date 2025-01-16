@@ -6,23 +6,23 @@ import (
 )
 
 type User struct {
-	UserID                int                    `gorm:"primaryKey;autoIncrement"`
-	Username              string                 `gorm:"size:255"`
-	Email                 string                 `gorm:"size:255"`
-	PasswordHash          string                 `gorm:"size:255"`
-	FirstName             string                 `gorm:"size:255"`
-	LastName              string                 `gorm:"size:255"`
-	Status                string                 `gorm:"type:enum('ACTIVE', 'INACTIVE', 'SUSPENDED');default:'ACTIVE'"`
-	CreatedAt             time.Time              `gorm:"autoCreateTime"`
-	Wallets               []Wallet               `gorm:"foreignKey:UserID"`
-	PaymentMethods        []PaymentMethod        `gorm:"foreignKey:UserID"`
-	Logs                  []Log                  `gorm:"foreignKey:UserID"`
-	UserVerifications     []UserVerification     `gorm:"foreignKey:UserID"`
-	CardDetails           []CardDetail           `gorm:"foreignKey:UserID"`
-	RewardPoints          []RewardPoint          `gorm:"foreignKey:UserID"`
-	RecurringTransactions []RecurringTransaction `gorm:"foreignKey:UserID"`
-	SecurityLogs          []SecurityLog          `gorm:"foreignKey:UserID"`
-	Notifications         []Notification         `gorm:"foreignKey:UserID;references:UserID"`
-	UserSessions          []UserSession          `gorm:"foreignKey:UserID"`
-	AuditLogs             []AuditLog             `gorm:"foreignKey:UserID"`
+	ID           int `gorm:"primaryKey"`
+	Username     string
+	Email        string
+	PasswordHash string
+	FirstName    string
+	LastName     string
+	Status       string
+	CreatedAt    time.Time
+	Wallets      []Wallet `gorm:"foreignKey:ID"`
+	PaymentMethods        []PaymentMethod        `gorm:"foreignKey:ID"`
+	Logs                  []Log                  `gorm:"foreignKey:ID"`
+	UserVerifications     []UserVerification     `gorm:"foreignKey:ID"`
+	CardDetails           []CardDetail           `gorm:"foreignKey:ID"`
+	RewardPoints          []RewardPoint          `gorm:"foreignKey:ID"`
+	RecurringTransactions []RecurringTransaction `gorm:"foreignKey:ID"`
+	SecurityLogs          []SecurityLog          `gorm:"foreignKey:ID"`
+	Notifications         []Notification         `gorm:"foreignKey:ID"`
+	UserSessions          []UserSession          `gorm:"foreignKey:ID"`
+	AuditLogs             []AuditLog             `gorm:"foreignKey:ID"`
 }

@@ -11,3 +11,6 @@ mysql:
   port: 3306
   sslmode: "disable"
 
+api:
+ secrate_key: "kasahun@ahapay.com"
+

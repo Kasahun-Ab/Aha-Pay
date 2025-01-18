@@ -45,8 +45,6 @@ func LoadConfig(filename string) (*Config, error) {
 	return &config, nil
 }
 
-// ConnectDB establishes a connection to the MySQL database using GORM
-// It takes a Config struct that contains MySQL connection details.
 func ConnectDB(config *Config) (*gorm.DB, error) {
 	// Build the Data Source Name (DSN) string to connect to the MySQL database
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",

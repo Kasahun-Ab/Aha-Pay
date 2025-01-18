@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"go_ecommerce/internal/config"
+	"go_ecommerce/internal/handlers"
 	"go_ecommerce/internal/models"
+	"go_ecommerce/internal/services"
 	"log"
 	"os"
 	"os/signal"
@@ -36,15 +38,19 @@ func initDB(cfg *config.Config) (*gorm.DB, error) {
 }
 
 func main() {
+
 	cfg, err := config.LoadConfig("config.yaml")
+
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
 	dbConn, err := initDB(cfg)
+
 	if err != nil {
 		log.Fatalf("Database initialization failed: %v", err)
 	}
+
 	defer func() {
 		if sqlDB, err := dbConn.DB(); err != nil {
 			log.Printf("Error retrieving SQL DB: %v", err)
@@ -55,7 +61,6 @@ func main() {
 
 	e := echo.New()
 
-	// Middleware for logging and recovering from panics
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
@@ -81,19 +86,23 @@ func main() {
 	}
 
 	fmt.Println("Auto migration completed")
-	// Start the server in a goroutine
+
+	authService := services.NewAuthService(dbConn, "secretKey")
+	authHandler := handlers.NewAuthHandler(authService)
+
 	go func() {
 		if err := e.Start(":8080"); err != nil {
 			log.Printf("Error starting server: %v", err)
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server
+	e.POST("/register", authHandler.Register)
+	e.POST("/login", authHandler.Login)
+
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 
-	// Gracefully shutting down
 	fmt.Println("Shutting down gracefully...")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

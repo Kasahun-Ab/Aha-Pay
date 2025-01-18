@@ -6,14 +6,15 @@ import (
 	"go_ecommerce/pkg/dto"
 	"go_ecommerce/pkg/utils"
 
+	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type AuthService interface {
-	Register(req dto.RegisterRequest) (dto.RegisterResponse, error)
+	Register(c echo.Context, req dto.RegisterRequest) (dto.RegisterResponse, error)
 
-	Login(req dto.LoginRequest) (dto.LoginResponse, error)
+	Login(c echo.Context, req dto.LoginRequest) (dto.LoginResponse, error)
 
 	ValidateToken(token string) (map[string]interface{}, error)
 }
@@ -29,7 +30,7 @@ func NewAuthService(db *gorm.DB, secretKey string) AuthService {
 
 }
 
-func (s *authService) Register(req dto.RegisterRequest) (dto.RegisterResponse, error) {
+func (s *authService) Register(c echo.Context, req dto.RegisterRequest) (dto.RegisterResponse, error) {
 
 	var existingUser models.User
 
@@ -62,6 +63,8 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.RegisterResponse, e
 		return dto.RegisterResponse{}, err
 	}
 
+	utils.SetCookie(c, "token", token, 32)
+
 	return dto.RegisterResponse{
 		ID:        user.ID,
 		Username:  user.Username,
@@ -72,18 +75,18 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.RegisterResponse, e
 	}, nil
 }
 
-func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
+func (s *authService) Login(c echo.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
 
 	var user models.User
 	if err := s.db.Where("email = ?", req.Email).First(&user).Error; err != nil {
 
-		return dto.LoginResponse{}, errors.New("User Not Found")
+		return dto.LoginResponse{}, errors.New("user Not Found")
 
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
 
-		return dto.LoginResponse{}, errors.New("Incorrect Password")
+		return dto.LoginResponse{}, errors.New("incorrect Password")
 
 	}
 
@@ -91,6 +94,7 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	if err != nil {
 		return dto.LoginResponse{}, err
 	}
+	utils.SetCookie(c, "token", token, 32)
 
 	return dto.LoginResponse{
 
@@ -109,3 +113,4 @@ func (s *authService) ValidateToken(token string) (map[string]interface{}, error
 
 	return claims, nil
 }
+

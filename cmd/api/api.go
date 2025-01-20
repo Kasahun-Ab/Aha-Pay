@@ -6,6 +6,7 @@ import (
 	"go_ecommerce/internal/config"
 	"go_ecommerce/internal/handlers"
 	"go_ecommerce/internal/models"
+	"go_ecommerce/internal/repositories"
 	"go_ecommerce/internal/services"
 	"log"
 	"os"
@@ -89,6 +90,9 @@ func main() {
 
 	authService := services.NewAuthService(dbConn, "secretKey")
 	authHandler := handlers.NewAuthHandler(authService)
+	userRepo := repositories.NewUserRepository(dbConn)
+	userService := services.NewUserService(*userRepo)
+	userHandler := handlers.NewUserHandler(userService)
 
 	go func() {
 		if err := e.Start(":8080"); err != nil {
@@ -98,6 +102,8 @@ func main() {
 
 	e.POST("/register", authHandler.Register)
 	e.POST("/login", authHandler.Login)
+	e.POST("/forgot-password", userHandler.ForgotPassword)
+	e.POST("/reset-password", userHandler.ResetPassword)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

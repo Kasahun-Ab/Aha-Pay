@@ -28,7 +28,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 	}
 
-	resp, err := h.authService.Register(c, req)
+	resp, err := h.authService.Register(req)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -46,7 +46,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 	}
 
-	resp, err := h.authService.Login(c, req)
+	resp, err := h.authService.Login(req)
 
 	if err != nil {
 

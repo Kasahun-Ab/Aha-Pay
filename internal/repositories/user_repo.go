@@ -12,6 +12,15 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
+func (r *UserRepository) Delete(user *models.User) error {
+  
+    if err := r.DB.Delete(user).Error; err != nil {
+        return err
+    }
+    return nil
+
+}
+
 func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{DB: db}
 }

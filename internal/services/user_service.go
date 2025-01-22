@@ -5,26 +5,40 @@ import (
 	"go_ecommerce/internal/repositories"
 )
 
-type UserService struct {
+type UserAccountService struct {
 	Repo repositories.UserRepository
 }
 
-func NewUserService(repo repositories.UserRepository) *UserService {
-	return &UserService{Repo: repo}
+
+
+func NewUserAccountService(repo repositories.UserRepository) *UserAccountService {
+	return &UserAccountService{Repo: repo}
 }
 
-func (s *UserService) FindByEmail(email string) (*models.User, error) {
-	return s.Repo.FindByEmail(email)
+func (s *UserAccountService) FindByEmail(email string) (*models.User, error) {
+	
+    return s.Repo.FindByEmail(email)
+
 }
 
-func (s *UserService) FindByID(id int) (*models.User, error) {
+
+func (s *UserAccountService) FindByID(id int) (*models.User, error) {
+
 	return s.Repo.FindByID(id)
+
 }
 
-func (s *UserService) Create(user *models.User) error {
+
+func (s *UserAccountService) Create(user *models.User) error {
 	return s.Repo.Create(user)
 }
 
-func (s *UserService) Update(user *models.User) error {
+
+func (s *UserAccountService) Update(user *models.User) error {
 	return s.Repo.Update(user)
+}
+
+
+func (s *UserAccountService) DeleteUser(user *models.User) error {
+    return s.Repo.Delete(user)
 }

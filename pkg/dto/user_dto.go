@@ -1,7 +1,7 @@
 package dto
 
 type FindUserByEmailRequestDTO struct {
-	Email string `json:"email" validate:"required,email"` // The email to search for
+	Email string `json:"email" validate:"required,email"` 
 }
 
 type FindUserByEmailResponseDTO struct {

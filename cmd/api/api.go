@@ -88,15 +88,15 @@ func main() {
 
 	fmt.Println("Auto migration completed")
 	userRepo := repositories.NewUserRepository(dbConn)
-	
+
 	authService := services.NewAuthService(dbConn, "secretKey", *userRepo)
 	authHandler := handlers.NewAuthHandler(authService)
-	
+
 	resetService := services.NewResetService(*userRepo)
 	resetHandler := handlers.NewRestHandler(resetService)
 
-
-	
+	userAccountService := services.NewUserAccountService(*userRepo)
+	userAccountHandler := handlers.NewUserAccountHandler(userAccountService)
 
 	go func() {
 		if err := e.Start(":8080"); err != nil {
@@ -108,6 +108,12 @@ func main() {
 	e.POST("/login", authHandler.Login)
 	e.POST("/forgot-password", resetHandler.ForgotPassword)
 	e.POST("/reset-password", resetHandler.ResetPassword)
+
+	e.GET("/user", userAccountHandler.GetUser)
+	e.POST("/user/email", userAccountHandler.GetUserByEmail)
+	e.PUT("/user", userAccountHandler.UpdateUser)
+	e.PUT("/user/email", userAccountHandler.UpdateUserByEmail)
+	e.DELETE("/user", userAccountHandler.DeleteUser)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

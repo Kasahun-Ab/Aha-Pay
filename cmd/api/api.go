@@ -8,6 +8,7 @@ import (
 	"go_ecommerce/internal/models"
 	"go_ecommerce/internal/repositories"
 	"go_ecommerce/internal/services"
+	customMiddleware "go_ecommerce/internal/middleware"
 	"log"
 	"os"
 	"os/signal"
@@ -16,27 +17,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"gorm.io/gorm"
 )
-
-func initDB(cfg *config.Config) (*gorm.DB, error) {
-	dbConn, err := config.ConnectDB(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("Error connecting to the database: %w", err)
-	}
-
-	sqlDB, err := dbConn.DB()
-	if err != nil {
-		return nil, fmt.Errorf("Error retrieving SQL DB: %w", err)
-	}
-
-	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("Error pinging the database: %w", err)
-	}
-
-	fmt.Println("Successfully connected to the MySQL database!")
-	return dbConn, nil
-}
 
 func main() {
 
@@ -46,7 +27,7 @@ func main() {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
-	dbConn, err := initDB(cfg)
+	dbConn, err := config.InitDB(cfg)
 
 	if err != nil {
 		log.Fatalf("Database initialization failed: %v", err)
@@ -87,6 +68,7 @@ func main() {
 	}
 
 	fmt.Println("Auto migration completed")
+
 	userRepo := repositories.NewUserRepository(dbConn)
 
 	authService := services.NewAuthService(dbConn, "secretKey", *userRepo)
@@ -108,12 +90,15 @@ func main() {
 	e.POST("/login", authHandler.Login)
 	e.POST("/forgot-password", resetHandler.ForgotPassword)
 	e.POST("/reset-password", resetHandler.ResetPassword)
-
-	e.GET("/user", userAccountHandler.GetUser)
-	e.POST("/user/email", userAccountHandler.GetUserByEmail)
-	e.PUT("/user", userAccountHandler.UpdateUser)
-	e.PUT("/user/email", userAccountHandler.UpdateUserByEmail)
-	e.DELETE("/user", userAccountHandler.DeleteUser)
+   
+	userRoutes := e.Group("/user")
+	userRoutes.Use(customMiddleware.AuthMiddleware)
+	userRoutes.GET("", userAccountHandler.GetUser)
+	userRoutes.POST("/email", userAccountHandler.GetUserByEmail)
+	userRoutes.PUT("", userAccountHandler.UpdateUser)
+	userRoutes.PUT("/email", userAccountHandler.UpdateUserByEmail)
+	userRoutes.DELETE("", userAccountHandler.DeleteUser)
+	    
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

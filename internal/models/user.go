@@ -6,17 +6,17 @@ import (
 )
 
 type User struct {
-	ID           int `gorm:"primaryKey"`
-	Username     string
-	Email        string
-	PasswordHash string
-	FirstName    string
-	LastName     string
-	Status       string
-	CreatedAt    time.Time
-	ResetToken   string
-	ResetTokenExpiry time.Time
-	Wallets      []Wallet `gorm:"foreignKey:ID"`
+	ID                    int `gorm:"primaryKey"`
+	Username              string
+	Email                 string
+	PasswordHash          string
+	FirstName             string `gorm:""` // Ignore this field when creating or updating a user
+	LastName              string
+	Status                string
+	CreatedAt             time.Time
+	ResetToken            string
+	ResetTokenExpiry      time.Time
+	Wallets               []Wallet               `gorm:"foreignKey:ID"`
 	PaymentMethods        []PaymentMethod        `gorm:"foreignKey:ID"`
 	Logs                  []Log                  `gorm:"foreignKey:ID"`
 	UserVerifications     []UserVerification     `gorm:"foreignKey:ID"`

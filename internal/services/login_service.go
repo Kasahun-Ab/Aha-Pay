@@ -16,7 +16,7 @@ type AuthService interface {
 
 	Login(req dto.LoginRequest) (dto.LoginResponse, error)
 
-	ValidateToken(token string) (map[string]interface{}, error)
+	// ValidateToken(token string) (map[string]interface{}, error)
 }
 
 type authService struct {
@@ -32,8 +32,9 @@ func NewAuthService(db *gorm.DB, secretKey string, Repo repositories.UserReposit
 }
 
 func (s *authService) Register(req dto.RegisterRequest) (dto.RegisterResponse, error) {
-	//    var user models.User
+	
 	_, err := s.Repo.FindByEmail(req.Email)
+
 	if err != nil {
 		return dto.RegisterResponse{}, errors.New("user already exists")
 	}
@@ -61,33 +62,24 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.RegisterResponse, e
 func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 
 	user, err := s.Repo.FindByEmail(req.Email)
+
 	if err != nil {
+
 		return dto.LoginResponse{}, errors.New("invalid credentials")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		
 		return dto.LoginResponse{}, errors.New("invalid credentials")
 	}
 
 	token, err := utils.GenerateJWT(*user, s.secretKey)
 
 	if err != nil {
+		
 		return dto.LoginResponse{}, errors.New("failed to generate token")
 	}
 
 	return dto.LoginResponse{Token: token}, nil
 
-}
-
-func (s *authService) ValidateToken(token string) (map[string]interface{}, error) {
-
-	claims, err := utils.ParseToken(token, s.secretKey)
-
-	if err != nil {
-
-		return nil, errors.New("invalid or expired token")
-
-	}
-
-	return claims, nil
 }

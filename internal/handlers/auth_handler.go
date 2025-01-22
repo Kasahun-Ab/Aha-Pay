@@ -33,6 +33,8 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
+	
+	utils.SetCookie(c, "token", resp.Token, 3600)
 
 	return c.JSON(http.StatusCreated, resp)
 }
@@ -52,6 +54,8 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 	}
+
+	utils.SetCookie(c, "token", resp.Token, 3600)
 
 	return c.JSON(http.StatusOK, resp)
 }

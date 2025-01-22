@@ -102,7 +102,7 @@ func main() {
 
 	e.POST("/register", authHandler.Register)
 	e.POST("/login", authHandler.Login)
-	e.POST("/forgot-password", userHandler.ForgotPassword)
+  	e.POST("/forgot-password", userHandler.ForgotPassword)
 	e.POST("/reset-password", userHandler.ResetPassword)
 
 	stop := make(chan os.Signal, 1)

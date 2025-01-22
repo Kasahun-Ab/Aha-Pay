@@ -7,15 +7,18 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type UserHandler struct {
-	Service *services.UserService
+type RestHandler struct {
+	Service *services.ResetService
 }
 
-func NewUserHandler(service *services.UserService) *UserHandler {
-	return &UserHandler{Service: service}
+func NewRestHandler(service *services.ResetService) *RestHandler {
+
+	return &RestHandler{Service: service}
+
 }
 
-func (h *UserHandler) ForgotPassword(c echo.Context) error {
+func (h *RestHandler) ForgotPassword(c echo.Context) error {
+
 	type Request struct {
 		Email string `json:"email" validate:"required,email"`
 	}
@@ -32,7 +35,7 @@ func (h *UserHandler) ForgotPassword(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "Reset link sent to your email"})
 }
 
-func (h *UserHandler) ResetPassword(c echo.Context) error {
+func (h *RestHandler) ResetPassword(c echo.Context) error {
 	type Request struct {
 		Token       string `json:"token" validate:"required"`
 		NewPassword string `json:"new_password" validate:"required,min=6"`

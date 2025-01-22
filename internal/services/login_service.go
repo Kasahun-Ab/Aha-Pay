@@ -3,18 +3,18 @@ package services
 import (
 	"errors"
 	"go_ecommerce/internal/models"
+	"go_ecommerce/internal/repositories"
 	"go_ecommerce/pkg/dto"
 	"go_ecommerce/pkg/utils"
 
-	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type AuthService interface {
-	Register(c echo.Context, req dto.RegisterRequest) (dto.RegisterResponse, error)
+	Register(req dto.RegisterRequest) (dto.RegisterResponse, error)
 
-	Login(c echo.Context, req dto.LoginRequest) (dto.LoginResponse, error)
+	Login(req dto.LoginRequest) (dto.LoginResponse, error)
 
 	ValidateToken(token string) (map[string]interface{}, error)
 }
@@ -22,83 +22,61 @@ type AuthService interface {
 type authService struct {
 	db        *gorm.DB
 	secretKey string
+	Repo      repositories.UserRepository
 }
 
-func NewAuthService(db *gorm.DB, secretKey string) AuthService {
+func NewAuthService(db *gorm.DB, secretKey string, Repo repositories.UserRepository) AuthService {
 
-	return &authService{db: db, secretKey: secretKey}
+	return &authService{db: db, secretKey: secretKey, Repo: Repo}
 
 }
 
-func (s *authService) Register(c echo.Context, req dto.RegisterRequest) (dto.RegisterResponse, error) {
-
-	var existingUser models.User
-
-	if err := s.db.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
-
+func (s *authService) Register(req dto.RegisterRequest) (dto.RegisterResponse, error) {
+	//    var user models.User
+	_, err := s.Repo.FindByEmail(req.Email)
+	if err != nil {
 		return dto.RegisterResponse{}, errors.New("user already exists")
-
 	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return dto.RegisterResponse{}, err
 	}
-
 	user := models.User{
+		Email:        req.Email,
+		PasswordHash: string(passwordHash),
 		Username:     req.Username,
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
-		Email:        req.Email,
-		PasswordHash: string(hashedPassword),
+		Status:       "active",
 	}
-	if err := s.db.Create(&user).Error; err != nil {
 
+	if err := s.Repo.Create(&user); err != nil {
 		return dto.RegisterResponse{}, err
 	}
 
-	token, err := utils.GenerateJWT(user, s.secretKey)
-	if err != nil {
-		return dto.RegisterResponse{}, err
-	}
+	return dto.RegisterResponse{ID: user.ID}, nil
 
-	utils.SetCookie(c, "token", token, 32)
-
-	return dto.RegisterResponse{
-		ID:        user.ID,
-		Username:  user.Username,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
-		Token:     token,
-	}, nil
 }
 
-func (s *authService) Login(c echo.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
+func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 
-	var user models.User
-	if err := s.db.Where("email = ?", req.Email).First(&user).Error; err != nil {
-
-		return dto.LoginResponse{}, errors.New("user Not Found")
-
+	user, err := s.Repo.FindByEmail(req.Email)
+	if err != nil {
+		return dto.LoginResponse{}, errors.New("invalid credentials")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-
-		return dto.LoginResponse{}, errors.New("incorrect Password")
-
+		return dto.LoginResponse{}, errors.New("invalid credentials")
 	}
 
-	token, err := utils.GenerateJWT(user, s.secretKey)
+	token, err := utils.GenerateJWT(*user, s.secretKey)
+
 	if err != nil {
-		return dto.LoginResponse{}, err
+		return dto.LoginResponse{}, errors.New("failed to generate token")
 	}
-	utils.SetCookie(c, "token", token, 32)
 
-	return dto.LoginResponse{
+	return dto.LoginResponse{Token: token}, nil
 
-		Token: token}, nil
 }
 
 func (s *authService) ValidateToken(token string) (map[string]interface{}, error) {
@@ -113,4 +91,3 @@ func (s *authService) ValidateToken(token string) (map[string]interface{}, error
 
 	return claims, nil
 }
-

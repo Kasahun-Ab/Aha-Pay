@@ -73,3 +73,22 @@ func ConnectDB(config *Config) (*gorm.DB, error) {
 	// Return the GORM DB object
 	return db, nil
 }
+
+func InitDB(cfg *Config) (*gorm.DB, error) {
+	dbConn, err := ConnectDB(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Error connecting to the database: %w", err)
+	}
+
+	sqlDB, err := dbConn.DB()
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving SQL DB: %w", err)
+	}
+
+	if err := sqlDB.Ping(); err != nil {
+		return nil, fmt.Errorf("Error pinging the database: %w", err)
+	}
+
+	fmt.Println("Successfully connected to the MySQL database!")
+	return dbConn, nil
+}

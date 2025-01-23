@@ -1,25 +1,28 @@
 package middleware
 
 import (
+    "go_ecommerce/pkg/utils"
     "net/http"
-    "github.com/go-playground/validator/v10"
     "github.com/labstack/echo/v4"
 )
 
-var validate = validator.New()
-
-func ValidateRequest(next echo.HandlerFunc) echo.HandlerFunc {
-	
+func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
     return func(c echo.Context) error {
 
-        req := c.Request().Context().Value("dto")
+        tokenString, err := utils.GetCookie(c, "token")
 
-        if err := validate.Struct(req); err != nil {
-
-            return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-
+        if err != nil {
+            return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized"})
         }
 
+        if tokenString == "" {
+            return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid token"})
+        }
+
+        // Parse and validate the token
+        utils.ParseToken(tokenString,"secret")
+
+       
         return next(c)
     }
 }

@@ -13,9 +13,4 @@ type FindUserByEmailResponseDTO struct {
 	Status    string `json:"status"`     // Date and time when the user was last updated (ISO format)
 }
 
-// Username     string
-// Email        string
 
-// FirstName    string
-// LastName     string
-// Status       string

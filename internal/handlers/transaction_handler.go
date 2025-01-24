@@ -4,8 +4,8 @@ package handlers
 import (
 	"net/http"
 	// "strconv"
-	"go_ecommerce/internal/models"
 	"go_ecommerce/internal/services"
+	"go_ecommerce/pkg/dto"
 
 	"github.com/labstack/echo/v4"
 )
@@ -20,13 +20,15 @@ func NewTransactionHandler(service services.TransactionService) *TransactionHand
 
 // Create a new transaction (POST /transactions)
 func (h *TransactionHandler) Create(c echo.Context) error {
-	var transaction models.Transaction
+
+	transaction := new(dto.CreateTransactionRequest)
+
 	if err := c.Bind(&transaction); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 	}
 
 	// Call the service to create the transaction
-	if err := h.service.CreateWithTransaction(&transaction); err != nil {
+	if err := h.service.CreateWithTransaction(transaction); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"go_ecommerce/internal/config"
 	"go_ecommerce/internal/handlers"
+	customMiddleware "go_ecommerce/internal/middleware"
 	"go_ecommerce/internal/models"
 	"go_ecommerce/internal/repositories"
 	"go_ecommerce/internal/services"
-	customMiddleware "go_ecommerce/internal/middleware"
 	"log"
 	"os"
 	"os/signal"
@@ -69,9 +69,11 @@ func main() {
 
 	fmt.Println("Auto migration completed")
 
+	wallerRepo := repositories.NewWalletRepository(dbConn)
+
 	userRepo := repositories.NewUserRepository(dbConn)
 
-	authService := services.NewAuthService(dbConn, "secretKey", *userRepo)
+	authService := services.NewAuthService(dbConn, "secretKey", *userRepo, *wallerRepo)
 	authHandler := handlers.NewAuthHandler(authService)
 
 	resetService := services.NewResetService(*userRepo)
@@ -79,6 +81,9 @@ func main() {
 
 	userAccountService := services.NewUserAccountService(*userRepo)
 	userAccountHandler := handlers.NewUserAccountHandler(userAccountService)
+
+	walletService := services.NewWalletService(*wallerRepo)
+	walletHandler := handlers.NewWalletHandler(walletService)
 
 	go func() {
 		if err := e.Start(":8080"); err != nil {
@@ -90,7 +95,7 @@ func main() {
 	e.POST("/login", authHandler.Login)
 	e.POST("/forgot-password", resetHandler.ForgotPassword)
 	e.POST("/reset-password", resetHandler.ResetPassword)
-   
+
 	userRoutes := e.Group("/user")
 	userRoutes.Use(customMiddleware.AuthMiddleware)
 	userRoutes.GET("", userAccountHandler.GetUser)
@@ -98,7 +103,7 @@ func main() {
 	userRoutes.PUT("", userAccountHandler.UpdateUser)
 	userRoutes.PUT("/email", userAccountHandler.UpdateUserByEmail)
 	userRoutes.DELETE("", userAccountHandler.DeleteUser)
-	    
+	userRoutes.POST("/wallet", walletHandler.CreateWallet)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

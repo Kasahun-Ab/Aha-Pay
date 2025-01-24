@@ -28,12 +28,12 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 	}
 
-	resp, err := h.authService.Register(req)
+	resp, err := h.authService.Register(&req)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	
+
 	utils.SetCookie(c, "token", resp.Token, 3600)
 
 	return c.JSON(http.StatusCreated, resp)
@@ -61,6 +61,8 @@ func (h *AuthHandler) Login(c echo.Context) error {
 }
 
 func (h *AuthHandler) Logout(c echo.Context) error {
+
 	utils.ClearCookie(c, "token")
+
 	return c.JSON(http.StatusOK, echo.Map{"message": "Logout successful"})
 }

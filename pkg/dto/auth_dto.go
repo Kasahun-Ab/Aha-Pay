@@ -31,4 +31,5 @@ type RegisterResponse struct {
 	Email     string `json:"email"`
 	Status    string `json:"status"`
 	Token     string `json:"token"`
+	Wallet    int    `json:"wallet"`
 }

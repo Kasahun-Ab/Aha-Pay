@@ -56,6 +56,9 @@ func (r *UserRepository) Create(user *models.User) error {
 	if err := r.DB.Create(user).Error; err != nil {
 		return err
 	}
+
+	
+
 	return nil
 }
 

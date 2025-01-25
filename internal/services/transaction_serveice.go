@@ -2,13 +2,15 @@
 package services
 
 import (
-	"gorm.io/gorm"
 	"go_ecommerce/internal/models"
 	"go_ecommerce/internal/repositories"
+	"go_ecommerce/pkg/dto"
+
+	"gorm.io/gorm"
 )
 
 type TransactionService interface {
-	CreateWithTransaction(transaction *models.Transaction) error
+	CreateWithTransaction(transaction *dto.CreateTransactionRequest) error
 }
 
 type transactionService struct {
@@ -21,7 +23,7 @@ func NewTransactionService(db *gorm.DB, repo repositories.TransactionRepository)
 }
 
 // CreateWithTransaction handles creating a transaction within a GORM transaction
-func (s *transactionService) CreateWithTransaction(transaction *models.Transaction) error {
+func (s *transactionService) CreateWithTransaction(transaction *dto.CreateTransactionRequest) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// Example: Check the wallet balance
 		var wallet models.Wallet

@@ -16,7 +16,7 @@ type User struct {
 	CreatedAt             time.Time
 	ResetToken            string
 	ResetTokenExpiry      time.Time
-	Wallets               []Wallet               `gorm:"foreignKey:ID"`
+	Wallets               [] Wallet               `gorm:"foreignKey:UserID"`
 	PaymentMethods        []PaymentMethod        `gorm:"foreignKey:ID"`
 	Logs                  []Log                  `gorm:"foreignKey:ID"`
 	UserVerifications     []UserVerification     `gorm:"foreignKey:ID"`

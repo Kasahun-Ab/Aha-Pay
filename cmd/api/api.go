@@ -73,17 +73,23 @@ func main() {
 
 	userRepo := repositories.NewUserRepository(dbConn)
 
+	transactionRepo:=repositories.NewTransactionRepository()
+ //authentication
 	authService := services.NewAuthService(dbConn, "secretKey", *userRepo, *wallerRepo)
 	authHandler := handlers.NewAuthHandler(authService)
 
+	//forgot password
 	resetService := services.NewResetService(*userRepo)
 	resetHandler := handlers.NewRestHandler(resetService)
 
+	 //user 
 	userAccountService := services.NewUserAccountService(*userRepo)
 	userAccountHandler := handlers.NewUserAccountHandler(userAccountService)
-
-	walletService := services.NewWalletService(*wallerRepo)
-	walletHandler := handlers.NewWalletHandler(walletService)
+    
+	 
+	 //transaction
+	transactionService := services.NewTransactionService(dbConn,transactionRepo)
+	  transactionHandler:=handlers.NewTransactionHandler(transactionService )
 
 	go func() {
 		if err := e.Start(":8080"); err != nil {
@@ -96,14 +102,21 @@ func main() {
 	e.POST("/forgot-password", resetHandler.ForgotPassword)
 	e.POST("/reset-password", resetHandler.ResetPassword)
 
+	//user
 	userRoutes := e.Group("/user")
 	userRoutes.Use(customMiddleware.AuthMiddleware)
 	userRoutes.GET("", userAccountHandler.GetUser)
 	userRoutes.POST("/email", userAccountHandler.GetUserByEmail)
 	userRoutes.PUT("", userAccountHandler.UpdateUser)
 	userRoutes.PUT("/email", userAccountHandler.UpdateUserByEmail)
-	userRoutes.DELETE("", userAccountHandler.DeleteUser)
-	userRoutes.POST("/wallet", walletHandler.CreateWallet)
+	userRoutes.DELETE("/", userAccountHandler.DeleteUser)
+
+
+	 //transaction
+	transactionRoutes := e.Group("/transaction")
+	transactionRoutes.Use(customMiddleware.AuthMiddleware)
+	transactionRoutes.POST("", transactionHandler.Create)
+	
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

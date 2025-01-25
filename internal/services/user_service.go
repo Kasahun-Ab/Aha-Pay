@@ -28,13 +28,20 @@ func (s *UserAccountService) FindByID(id int) (*models.User, error) {
 }
 
 func (s *UserAccountService) Create(user *models.User) error {
+	
 	return s.Repo.Create(user)
+
 }
 
 func (s *UserAccountService) Update(user *models.User) error {
+
 	return s.Repo.Update(user)
+
 }
 
 func (s *UserAccountService) DeleteUser(user *models.User) error {
+
+
 	return s.Repo.Delete(user)
+	
 }

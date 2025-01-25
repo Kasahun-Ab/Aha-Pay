@@ -2,13 +2,14 @@
 package repositories
 
 import (
+	"go_ecommerce/internal/models"
 	"go_ecommerce/pkg/dto"
 
 	"gorm.io/gorm"
 )
 
 type TransactionRepository interface {
-	Create(tx *gorm.DB, transaction *dto.CreateTransactionRequest) error
+	Create(tx *gorm.DB, transaction *models.Transaction) error
 	GetByID(tx *gorm.DB, id int) (*dto.TransactionResponse, error)
 }
 
@@ -18,8 +19,8 @@ func NewTransactionRepository() TransactionRepository {
 	return &transactionRepository{}
 }
 
-func (r *transactionRepository) Create(tx *gorm.DB, transaction *dto.CreateTransactionRequest) error {
-	return tx.Create(transaction).Error
+func (r *transactionRepository) Create(tx *gorm.DB, transaction *models.Transaction) error {
+	return tx.Create(&transaction).Error
 }
 
 func (r *transactionRepository) GetByID(tx *gorm.DB, id int) (*dto.TransactionResponse, error) {

@@ -4,12 +4,11 @@ package dto
 type CreateTransactionRequest struct {
 	WalletID        int     `json:"wallet_id" binding:"required"` // Required to associate with a Wallet
 	Amount          float64 `json:"amount" binding:"required"`    // Required amount
-	TransactionType string  `json:"transaction_type" binding:"required,oneof=DEPOSIT WITHDRAWAL TRANSFER"` // Enum validation
+	TransactionType string  `json:"transaction_type" binding:"required,oneof=DEPOSIT WITHDRAWAL TRANSFER"`
+	ReceiverWalletID int    `json:"receiver_wallet_id"`
+	// Enum validation
 }
 
-type UpdateTransactionRequest struct {
-	Status string `json:"status" binding:"required,oneof=PENDING COMPLETED FAILED"` // Required for status updates
-}
 
 
 

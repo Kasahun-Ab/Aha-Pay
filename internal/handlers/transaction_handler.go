@@ -19,6 +19,7 @@ func NewTransactionHandler(service services.TransactionService) *TransactionHand
 }
 
 // Create a new transaction (POST /transactions)
+
 func (h *TransactionHandler) Create(c echo.Context) error {
 
 	transaction := new(dto.CreateTransactionRequest)
@@ -29,7 +30,7 @@ func (h *TransactionHandler) Create(c echo.Context) error {
 
 	// Call the service to create the transaction
 	if err := h.service.CreateWithTransaction(transaction); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "error in transaction"})
 	}
 
 	return c.JSON(http.StatusCreated, transaction)

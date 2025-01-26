@@ -74,7 +74,8 @@ func main() {
 	userRepo := repositories.NewUserRepository(dbConn)
 
 	transactionRepo:=repositories.NewTransactionRepository()
- //authentication
+  	
+	//authentication
 	authService := services.NewAuthService(dbConn, "secretKey", *userRepo, *wallerRepo)
 	authHandler := handlers.NewAuthHandler(authService)
 
@@ -89,7 +90,12 @@ func main() {
 	 
 	 //transaction
 	transactionService := services.NewTransactionService(dbConn,transactionRepo)
-	  transactionHandler:=handlers.NewTransactionHandler(transactionService )
+	transactionHandler:=handlers.NewTransactionHandler(transactionService )
+
+	//wallet
+	walletService := services.NewWalletService(*wallerRepo)
+	walletHandler := handlers.NewWalletHandler(walletService)
+
 
 	go func() {
 		if err := e.Start(":8080"); err != nil {
@@ -117,6 +123,16 @@ func main() {
 	transactionRoutes.Use(customMiddleware.AuthMiddleware)
 	transactionRoutes.POST("", transactionHandler.Create)
 	
+
+	//wallet
+	walletRoutes := e.Group("/wallet")
+	walletRoutes.Use(customMiddleware.AuthMiddleware)
+	walletRoutes.GET("", walletHandler.GetWalletByID)
+	walletRoutes.POST("", walletHandler.CreateWallet)
+	walletRoutes.PUT("", walletHandler.UpdateWallet)
+	walletRoutes.DELETE("", walletHandler.DeleteWallet)	
+	walletRoutes.GET("/all", walletHandler.GetWalletByID)
+
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

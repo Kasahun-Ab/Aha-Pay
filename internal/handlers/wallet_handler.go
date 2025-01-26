@@ -103,3 +103,24 @@ func (h *WalletHandler) DeleteWallet(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "wallet deleted"})
 }
+
+func (h *WalletHandler) GetAllWallet(c echo.Context, userId int) error {
+
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "invalid wallet ID"})
+
+	}
+
+	wallet, err := h.service.GetWalletByID(id)
+
+	if err != nil {
+
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "wallet not found"})
+
+	}
+
+	return c.JSON(http.StatusOK, wallet)
+}

@@ -22,7 +22,7 @@ func NewWalletHandler(service *services.WalletService) *WalletHandler {
 
 func (h *WalletHandler) CreateWallet(c echo.Context) error {
 
-	userID := middleware.GetUserID(c)
+	userID, _ := middleware.GetUserID(c)
 
 	wallet := new(models.Wallet)
 
@@ -62,28 +62,28 @@ func (h *WalletHandler) GetWalletByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, wallet)
 }
 
-func (h *WalletHandler) UpdateWallet(c echo.Context) error {
+// func (h *WalletHandler) UpdateWallet(c echo.Context) error {
 
-	id, err := strconv.Atoi(c.Param("id"))
+// 	id, err := strconv.Atoi(c.Param("id"))
 
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "invalid wallet ID"})
-	}
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "invalid wallet ID"})
+// 	}
 
-	wallet := new(models.Wallet)
+// 	wallet := new(models.Wallet)
 
-	if err := c.Bind(wallet); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "invalid request"})
-	}
+// 	if err := c.Bind(wallet); err != nil {
+// 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "invalid request"})
+// 	}
 
-	wallet.ID = id
+// 	wallet.ID = id
 
-	if _, err := h.service.UpdateWallet(wallet); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "failed to update wallet"})
-	}
+// 	if _, err := h.service.UpdateWallet(wallet); err != nil {
+// 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "failed to update wallet"})
+// 	}
 
-	return c.JSON(http.StatusOK, wallet)
-}
+// 	return c.JSON(http.StatusOK, wallet)
+// }
 
 func (h *WalletHandler) DeleteWallet(c echo.Context) error {
 
@@ -104,9 +104,10 @@ func (h *WalletHandler) DeleteWallet(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "wallet deleted"})
 }
 
-func (h *WalletHandler) GetAllWallet(c echo.Context, userId int) error {
 
-	id, err := strconv.Atoi(c.Param("id"))
+func (h *WalletHandler) GetAllWalletsByUserID(c echo.Context) error {
+
+	userID, err := middleware.GetUserID(c)
 
 	if err != nil {
 
@@ -114,7 +115,7 @@ func (h *WalletHandler) GetAllWallet(c echo.Context, userId int) error {
 
 	}
 
-	wallet, err := h.service.GetWalletByID(id)
+	wallet, err := h.service.GetAllWalletsByUserID(userID)
 
 	if err != nil {
 

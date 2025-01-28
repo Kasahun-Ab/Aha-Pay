@@ -1,91 +1,91 @@
 package handlers
 
-import (
-	"go_ecommerce/internal/services"
-	"go_ecommerce/pkg/dto"
-	"net/http"
-	"strconv"
+// import (
+// 	"go_ecommerce/internal/services"
+// 	"go_ecommerce/pkg/dto"
+// 	"net/http"
+// 	"strconv"
 
-	"github.com/labstack/echo/v4"
-)
+// 	"github.com/labstack/echo/v4"
+// )
 
-type UserSessionHandler struct {
-	service services.UserSessionService
-}
+// type UserSessionHandler struct {
+// 	service services.UserSessionService
+// }
 
-func NewUserSessionHandler(service services.UserSessionService) *UserSessionHandler {
-	return &UserSessionHandler{service: service}
-}
+// func NewUserSessionHandler(service services.UserSessionService) *UserSessionHandler {
+// 	return &UserSessionHandler{service: service}
+// }
 
-func (h *UserSessionHandler) CreateSession(c echo.Context) error {
-	
-	var input dto.CreateUserSessionDTO
+// func (h *UserSessionHandler) CreateSession(c echo.Context) error {
 
-	if err := c.Bind(&input); err != nil {
+// 	var input dto.CreateUserSessionDTO
 
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
+// 	if err := c.Bind(&input); err != nil {
 
-	}
+// 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 
-	session, err := h.service.CreateSession(input)
-	
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+// 	}
 
-	return c.JSON(http.StatusCreated, session)
-}
+// 	session, err := h.service.CreateSession(input)
 
-func (h *UserSessionHandler) GetSessionByID(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
-	}
+// 	if err != nil {
+// 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+// 	}
 
-	session, err := h.service.GetSessionByID(id)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "Session not found"})
-	}
+// 	return c.JSON(http.StatusCreated, session)
+// }
 
-	return c.JSON(http.StatusOK, session)
-}
+// func (h *UserSessionHandler) GetSessionByID(c echo.Context) error {
+// 	id, err := strconv.Atoi(c.Param("id"))
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+// 	}
 
-func (h *UserSessionHandler) GetAllSessions(c echo.Context) error {
-	sessions, err := h.service.GetAllSessions()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+// 	session, err := h.service.GetSessionByID(id)
+// 	if err != nil {
+// 		return c.JSON(http.StatusNotFound, map[string]string{"error": "Session not found"})
+// 	}
 
-	return c.JSON(http.StatusOK, sessions)
-}
+// 	return c.JSON(http.StatusOK, session)
+// }
 
-func (h *UserSessionHandler) UpdateSession(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
-	}
+// func (h *UserSessionHandler) GetAllSessions(c echo.Context) error {
+// 	sessions, err := h.service.GetAllSessions()
+// 	if err != nil {
+// 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+// 	}
 
-	var input dto.UpdateUserSessionDTO
-	if err := c.Bind(&input); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
-	}
+// 	return c.JSON(http.StatusOK, sessions)
+// }
 
-	if err := h.service.UpdateSession(id, input); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+// func (h *UserSessionHandler) UpdateSession(c echo.Context) error {
+// 	id, err := strconv.Atoi(c.Param("id"))
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+// 	}
 
-	return c.NoContent(http.StatusOK)
-}
+// 	var input dto.UpdateUserSessionDTO
+// 	if err := c.Bind(&input); err != nil {
+// 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
+// 	}
 
-func (h *UserSessionHandler) DeleteSession(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
-	}
+// 	if err := h.service.UpdateSession(id, input); err != nil {
+// 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+// 	}
 
-	if err := h.service.DeleteSession(id); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
+// 	return c.NoContent(http.StatusOK)
+// }
 
-	return c.NoContent(http.StatusOK)
-}
+// func (h *UserSessionHandler) DeleteSession(c echo.Context) error {
+// 	id, err := strconv.Atoi(c.Param("id"))
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+// 	}
+
+// 	if err := h.service.DeleteSession(id); err != nil {
+// 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+// 	}
+
+// 	return c.NoContent(http.StatusOK)
+// }

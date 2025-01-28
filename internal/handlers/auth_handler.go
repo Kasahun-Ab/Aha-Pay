@@ -3,8 +3,8 @@ package handlers
 import (
 	"go_ecommerce/internal/services"
 	"go_ecommerce/pkg/dto"
-	"go_ecommerce/pkg/utils"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -29,21 +29,21 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 	}
 
-	resp, err, cookie := h.authService.Register(&req)
+	resp, err := h.authService.Register(&req)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
 	sessionModel := dto.CreateUserSessionDTO{
-		SessionToken: cookie.Value,
+		UserID:       resp.ID,
+		SessionToken: resp.Token,
 		IPAddress:    c.RealIP(),
 		DeviceInfo:   req.DeviceInfo,
 	}
 
-	h.sessionService.CreateSession(sessionModel)
+	h.sessionService.CreateSession(&sessionModel)
 
-	c.SetCookie(cookie)
 	return c.JSON(http.StatusCreated, resp)
 }
 
@@ -56,7 +56,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input"})
 	}
 
-	resp, err, cookie := h.authService.Login(req)
+	resp, err := h.authService.Login(req)
 
 	if err != nil {
 
@@ -64,39 +64,51 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	}
 
 	sessionModel := dto.CreateUserSessionDTO{
-		SessionToken: cookie.Value,
+		UserID:       resp.ID,
+		SessionToken: resp.Token,
 		IPAddress:    c.RealIP(),
 		DeviceInfo:   req.DeviceInfo,
 	}
 
-	h.sessionService.CreateSession(sessionModel)
-
-	c.SetCookie(cookie)
+	h.sessionService.CreateSession(&sessionModel)
 
 	return c.JSON(http.StatusOK, resp)
 }
 
-
 func (h *AuthHandler) Logout(c echo.Context) error {
-
-	cookie, err := utils.GetCookie(c, "token")
-
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cookie"})
+	// Retrieve the token from the Authorization header
+	authHeader := c.Request().Header.Get("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "Missing or invalid Authorization header",
+		})
 	}
 
-	session, err := h.sessionService.GetSessionByToken(cookie.Value)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Session not found"})
+	// Extract the token from the Authorization header
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	if token == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "Token is empty",
+		})
 	}
 
-	err = h.sessionService.DeleteSession(session.ID)
-
+	// Retrieve the session associated with the token
+	session, err := h.sessionService.GetSessionByToken(token)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete session"})
+		return c.JSON(http.StatusUnauthorized, echo.Map{
+			"error": "Session not found",
+		})
 	}
 
-	utils.ClearCookie(c, "token")
+	// Delete the session from the database/service
+	if err := h.sessionService.DeleteSession(session.ID); err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error": "Failed to delete session",
+		})
+	}
 
-	return c.JSON(http.StatusOK, echo.Map{"message": "Logout successful"})
+	// Respond with a success message
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "Logout successful",
+	})
 }

@@ -14,10 +14,12 @@ type UserSessionDTO struct {
 }
 
 // CreateUserSessionDTO is used for creating a new UserSession
+
 type CreateUserSessionDTO struct {
-	SessionToken string `json:"session_token" validate:"required"`
-	IPAddress    string `json:"ip_address" validate:"required"`
-	DeviceInfo   string `json:"device_info" validate:"required"`
+	UserID       int
+	SessionToken string `json:"session_token"`
+	IPAddress    string `json:"ip_address"`
+	DeviceInfo   string `json:"device_info"`
 }
 
 // UpdateUserSessionDTO is used for updating an existing UserSession

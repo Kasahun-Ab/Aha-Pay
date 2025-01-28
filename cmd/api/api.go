@@ -80,7 +80,7 @@ func main() {
 	sessionService := services.NewUserSessionService(*userSessionRepo)
 
 	//authentication
-	authService := services.NewAuthService(dbConn, "secretKey", *userRepo, *wallerRepo, *userSessionRepo)
+	authService := services.NewAuthService(dbConn, "secretKey", *userRepo, *wallerRepo)
 	authHandler := handlers.NewAuthHandler(authService, sessionService)
 
 	//forgot password

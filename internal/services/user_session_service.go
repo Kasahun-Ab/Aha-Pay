@@ -6,7 +6,6 @@ import (
 	"go_ecommerce/pkg/dto"
 )
 
-
 type UserSessionService struct {
 	repo *repositories.UserSessionRepo
 }
@@ -15,9 +14,10 @@ func NewUserSessionService(repo repositories.UserSessionRepo) *UserSessionServic
 	return &UserSessionService{repo: &repo}
 }
 
-func (s *UserSessionService) CreateSession(data dto.CreateUserSessionDTO) (*models.UserSession, error) {
+func (s *UserSessionService) CreateSession(data *dto.CreateUserSessionDTO) (*models.UserSession, error) {
 	userSession := &models.UserSession{
 		SessionToken: data.SessionToken,
+		UserID:       data.UserID,
 		IPAddress:    data.IPAddress,
 		DeviceInfo:   data.DeviceInfo,
 	}
@@ -32,11 +32,10 @@ func (s *UserSessionService) CreateSession(data dto.CreateUserSessionDTO) (*mode
 func (s *UserSessionService) GetSessionByID(id int) (*models.UserSession, error) {
 	return s.repo.FindByID(id)
 }
- 
+
 func (s *UserSessionService) GetSessionByToken(token string) (*models.UserSession, error) {
 	return s.repo.FindByToken(token)
 }
-
 
 func (s *UserSessionService) GetAllSessions() ([]models.UserSession, error) {
 	return s.repo.FindAll()

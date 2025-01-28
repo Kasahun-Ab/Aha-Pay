@@ -3,8 +3,8 @@ package utils
 import (
 	"go_ecommerce/internal/models"
 	"time"
-	"github.com/dgrijalva/jwt-go/v4"
 
+	"github.com/dgrijalva/jwt-go/v4"
 )
 
 func GenerateJWT(user models.User, secretKey string) (string, error) {
@@ -15,19 +15,18 @@ func GenerateJWT(user models.User, secretKey string) (string, error) {
 		"email":     user.Email,
 		"firstName": user.FirstName,
 		"lastName":  user.LastName,
-		"exp":       time.Now().Add(24 * time.Hour).Unix(), 
+		"exp":       time.Now().Add(24 * time.Hour).Unix(),
 	}
-	
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	return token.SignedString([]byte(secretKey)) 
+	return token.SignedString([]byte(secretKey))
 }
 
-
 func ParseToken(tokenStr, secretKey string) (jwt.MapClaims, error) {
-	
+
 	token, err := jwt.ParseWithClaims(tokenStr, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
-		
+
 		return []byte(secretKey), nil
 
 	})
@@ -36,11 +35,9 @@ func ParseToken(tokenStr, secretKey string) (jwt.MapClaims, error) {
 		return nil, err
 	}
 
-
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return nil, jwt.ErrSignatureInvalid 
+		return nil, jwt.ErrSignatureInvalid
 	}
 	return claims, nil
 }
-

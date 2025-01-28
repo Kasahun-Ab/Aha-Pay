@@ -5,7 +5,8 @@ import (
 )
 
 type UserSession struct {
-	ID    int       `gorm:"primaryKey"`
+	ID           int `gorm:"primaryKey"`
+	UserID       int
 	SessionToken string    `gorm:"size:255"`
 	IPAddress    string    `gorm:"size:255"`
 	DeviceInfo   string    `gorm:"size:text"`

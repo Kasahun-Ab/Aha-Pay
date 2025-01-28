@@ -73,29 +73,33 @@ func main() {
 
 	userRepo := repositories.NewUserRepository(dbConn)
 
-	transactionRepo:=repositories.NewTransactionRepository()
-  	
+	transactionRepo := repositories.NewTransactionRepository()
+
+	userSessionRepo := repositories.NewUserSessionRepository(dbConn)
+
+	sessionService := services.NewUserSessionService(*userSessionRepo)
+
 	//authentication
-	authService := services.NewAuthService(dbConn, "secretKey", *userRepo, *wallerRepo)
-	authHandler := handlers.NewAuthHandler(authService)
+	authService := services.NewAuthService(dbConn, "secretKey", *userRepo, *wallerRepo, *userSessionRepo)
+	authHandler := handlers.NewAuthHandler(authService, sessionService)
 
 	//forgot password
 	resetService := services.NewResetService(*userRepo)
 	resetHandler := handlers.NewRestHandler(resetService)
 
-	 //user 
+	//user
 	userAccountService := services.NewUserAccountService(*userRepo)
 	userAccountHandler := handlers.NewUserAccountHandler(userAccountService)
-    
-	 
-	 //transaction
-	transactionService := services.NewTransactionService(dbConn,transactionRepo)
-	transactionHandler:=handlers.NewTransactionHandler(transactionService )
+
+	//transaction
+	transactionService := services.NewTransactionService(dbConn, transactionRepo)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	//wallet
 	walletService := services.NewWalletService(*wallerRepo)
 	walletHandler := handlers.NewWalletHandler(walletService)
 
+	//session
 
 	go func() {
 		if err := e.Start(":8080"); err != nil {
@@ -105,6 +109,7 @@ func main() {
 
 	e.POST("/register", authHandler.Register)
 	e.POST("/login", authHandler.Login)
+	e.GET("/logout", authHandler.Logout)
 	e.POST("/forgot-password", resetHandler.ForgotPassword)
 	e.POST("/reset-password", resetHandler.ResetPassword)
 
@@ -117,22 +122,19 @@ func main() {
 	userRoutes.PUT("/email", userAccountHandler.UpdateUserByEmail)
 	userRoutes.DELETE("/", userAccountHandler.DeleteUser)
 
-
-	 //transaction
+	//transaction
 	transactionRoutes := e.Group("/transaction")
 	transactionRoutes.Use(customMiddleware.AuthMiddleware)
 	transactionRoutes.POST("", transactionHandler.Create)
-	
 
 	//wallet
 	walletRoutes := e.Group("/wallet")
 	walletRoutes.Use(customMiddleware.AuthMiddleware)
 	walletRoutes.GET("", walletHandler.GetWalletByID)
 	walletRoutes.POST("", walletHandler.CreateWallet)
-	walletRoutes.PUT("", walletHandler.UpdateWallet)
-	walletRoutes.DELETE("", walletHandler.DeleteWallet)	
-	walletRoutes.GET("/all", walletHandler.GetWalletByID)
-
+	// walletRoutes.PUT("", walletHandler.UpdateWallet)
+	walletRoutes.DELETE("", walletHandler.DeleteWallet)
+	walletRoutes.GET("/all", walletHandler.GetAllWalletsByUserID)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
